@@ -21,7 +21,7 @@ Imagine you’re grading a video sequence made of three clips:
 
 You want Clip B (the middle one) to smoothly inherit the color mood from Clip A to Clip C — avoiding a harsh visual jump.
 
-That’s exactly where ColorMatchBlendAutoWeights shines:
+That’s exactly where ColorMatchBlendAutoWeights ( should ) shines:
 
 Use the last frame of Clip A as Reference A
 
