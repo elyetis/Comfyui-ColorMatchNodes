@@ -44,5 +44,6 @@ Example weight ramp for 10-frame Clip B (default linear mode):
  ```
 Frame:     0    1    2    3    4    5    6    7    8    9
 weight_a: 1.0  0.9  0.8  0.7  0.6  0.5  0.4  0.3  0.2  0.1 → 0.0
+weight_b: 0.0  0.1  0.2  0.3  0.4  0.5  0.6  0.7  0.8  0.9 → 1.0
  ```
 Result → first frames look closer to Clip A, last frames closer to Clip C, with a smooth transition in between.
