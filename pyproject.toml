@@ -1,5 +1,5 @@
 [project]
-name = "colormatchnodes"
+name = "Comfyui-ColorMatchNodes"
 description = "Color match nodes for ComfyUI that color-match target images against reference images with manual or auto-ramped blending, ideal for smooth color transitions between video clips."
 version = "1.0.0"
 license = {file = "LICENSE"} 
@@ -29,7 +29,7 @@ Documentation = "https://github.com/elyetis/Comfyui-ColorMatchNodes/wiki"
 "Bug Tracker" = "https://github.com/elyetis/Comfyui-ColorMatchNodes/issues"
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "elyetis"
 DisplayName = "Comfyui-ColorMatchNodes"
 Icon = ""
 includes = [] 
