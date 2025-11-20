@@ -168,6 +168,12 @@ class ColorMatchBlendAutoWeights:
             "optional": {
                 # Pull strength toward the blended result
                 "strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01}),
+                "strength_mode": (["constant", "u_shape"], {"default": "constant"}),
+                "mid_strength": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01}),
+                "strength_easing": (
+                    ["linear", "ease_in", "ease_out", "ease_in_out", "smoothstep"],
+                    {"default": "linear"},
+                ),
                 "multithread": ("BOOLEAN", {"default": True}),
 
                 # Auto-weight controls (defaults reproduce your examples):
@@ -223,6 +229,9 @@ Requires: pip install color-matcher
         image_target,
         method,
         strength=1.0,
+        strength_mode="constant",
+        mid_strength=0.5,
+        strength_easing="linear",
         multithread=True,
         start_weight_a=1.0,
         end_weight_a=0.0,
@@ -265,6 +274,34 @@ Requires: pip install color-matcher
         if debug_print:
             print(f"[ColorMatchBlendAutoWeights] weights_a (len={batch_size}): {weights_a}")
 
+        # --- Per-frame strength curve ---
+        strengths = []
+        if strength_mode == "constant" or batch_size == 1:
+            strengths = [float(strength)] * batch_size
+        else:
+            # U-shape: high at start/end (strength), low in the middle (mid_strength)
+            edge = float(strength)
+            mid = float(mid_strength)
+            half = (batch_size - 1) / 2.0 if batch_size > 1 else 0.0
+
+            for i in range(batch_size):
+                if half > 0:
+                    if i <= half:
+                        frac = i / half            # 0 → 1 going from start to center
+                    else:
+                        frac = (batch_size - 1 - i) / half  # 0 → 1 going from end to center
+                else:
+                    frac = 0.0
+
+                # optional easing for the U-shape
+                frac = self._ease(frac, strength_easing, float(ease_power))
+
+                # frac = 0 at edges, 1 near center
+                s_i = edge + (mid - edge) * frac
+                # avoid negative or insane values
+                s_i = max(0.0, float(s_i))
+                strengths.append(s_i)
+
         def process(i):
             cm = ColorMatcher()
 
@@ -288,7 +325,8 @@ Requires: pip install color-matcher
             wa = weights_a[i]
             wb = 1.0 - wa
             blended = wa * matched_a + wb * matched_b
-            out = targ_i + float(strength) * (blended - targ_i)
+            s = strengths[i]
+            out = targ_i + float(s) * (blended - targ_i)
             return torch.from_numpy(out)
 
         if multithread and batch_size > 1:
