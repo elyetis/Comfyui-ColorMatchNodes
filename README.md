@@ -11,7 +11,7 @@ ColorMatchBlendAutoWeights – same idea, but weight_a is automatically ramped a
 
 Examples : 
 ![Preview](/docs/excolormatch2ref.png)
-![Preview](/docs/exblend.png)
+![Preview](/docs/exblend-1-1.png)
 
 Use Case for ColorMatchBlendAutoWeights : Smooth Color Transition Between Clips ( for example when using Vace to generate clip transition )
 
@@ -47,3 +47,12 @@ weight_a: 1.0  0.9  0.8  0.7  0.6  0.5  0.4  0.3  0.2  0.1 → 0.0
 weight_b: 0.0  0.1  0.2  0.3  0.4  0.5  0.6  0.7  0.8  0.9 → 1.0
  ```
 Result → first frames look closer to Clip A, last frames closer to Clip C, with a smooth transition in between.
+
+You can also use strength_mode : u_shape to make the color-match intensity dip in the center of the target sequence.
+For example with the same 10-frame Clip B but wit strength_mode = "u_shape", mid_strength = 0.5, strength_easing = "linear": 
+ ```
+Frame:     0    1    2    3    4    5    6    7    8    9
+weight_a: 1.0  0.9  0.8  0.7  0.6  0.5  0.4  0.3  0.2  0.1 → 0.0
+weight_b: 0.0  0.1  0.2  0.3  0.4  0.5  0.6  0.7  0.8  0.9 → 1.0
+strength: 1.0  0.9  0.8  0.7  0.6  0.5  0.5  0.6  0.7  0.8 → 1.0
+ ```
