@@ -167,6 +167,8 @@ class ColorMatchBlendAutoWeights:
             },
             "optional": {
                 # Pull strength toward the blended result
+                "ref_a_batch_mode": (["first frame", "last frame"], {"default": "last frame"}),
+                "ref_b_batch_mode": (["first frame", "last frame"], {"default": "first frame"}),
                 "strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01}),
                 "strength_mode": (["constant", "u_shape"], {"default": "constant"}),
                 "mid_strength": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 10.0, "step": 0.01}),
@@ -237,6 +239,8 @@ Requires: pip install color-matcher
         end_weight_a=0.0,
         easing="linear",
         ease_power=2.0,
+        ref_a_batch_mode="last frame",
+        ref_b_batch_mode="first frame",
         debug_print=False,
     ):
         try:
@@ -257,7 +261,21 @@ Requires: pip install color-matcher
         ref_a_batch = int(image_ref_a.size(0))
         ref_b_batch = int(image_ref_b.size(0))
 
-        # Precompute per-frame weights
+        # Choose reference frame index for A
+        if ref_a_batch <= 1:
+            ref_a_index = 0
+        else:
+            ref_a_index = 0 if ref_a_batch_mode == "first frame" else (ref_a_batch - 1)
+
+        if ref_b_batch <= 1:
+            ref_b_index = 0
+        else:
+            ref_b_index = 0 if ref_b_batch_mode == "first frame" else (ref_b_batch - 1)
+
+        
+        
+
+        # Precompute per-frame weights 
         weights_a = []
         if batch_size == 1:
             # degenerate case: just use start_weight_a
@@ -272,8 +290,15 @@ Requires: pip install color-matcher
                 weights_a.append(wa)
 
         if debug_print:
+            print("------ ColorMatchBlendAutoWeights DEBUG ------")
             print(f"[ColorMatchBlendAutoWeights] weights_a (len={batch_size}): {weights_a}")
-
+            print(f"ref_a_batch_mode = {ref_a_batch_mode}")
+            print(f"ref_b_batch_mode = {ref_b_batch_mode}")
+            print(f"ref_a_batch size = {ref_a_batch}")
+            print(f"ref_b_batch size = {ref_b_batch}")
+            print(f"Chosen ref_a_index = {ref_a_index}")
+            print(f"Chosen ref_b_index = {ref_b_index}")
+            print("------------------------------------------------")
         # --- Per-frame strength curve ---
         strengths = []
         if strength_mode == "constant" or batch_size == 1:
@@ -307,8 +332,8 @@ Requires: pip install color-matcher
 
             targ_i = image_target[i].cpu().numpy()
             # Select appropriate ref frame (broadcast if batch==1)
-            ref_a_i = image_ref_a[0 if ref_a_batch == 1 else i].cpu().numpy()
-            ref_b_i = image_ref_b[0 if ref_b_batch == 1 else i].cpu().numpy()
+            ref_a_i = image_ref_a[ref_a_index].cpu().numpy() 
+            ref_b_i = image_ref_b[ref_b_index].cpu().numpy()
 
             try:
                 matched_a = cm.transfer(src=targ_i, ref=ref_a_i, method=method)
